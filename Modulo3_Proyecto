@@ -1,0 +1,2393 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "bbd7cdff",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01578,
+     "end_time": "2024-11-17T04:28:25.062780",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:25.047000",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Proyecto: Predicción de retorno de clientes.\n",
+    "\n",
+    "Curso: Introducción a la Ciencia de Datos con Python 2024-2\n",
+    "\n",
+    "Escrito por Hector Valdes Hurtado"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "95dd6879",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:25.096655Z",
+     "iopub.status.busy": "2024-11-17T04:28:25.096108Z",
+     "iopub.status.idle": "2024-11-17T04:28:29.212342Z",
+     "shell.execute_reply": "2024-11-17T04:28:29.211004Z"
+    },
+    "papermill": {
+     "duration": 4.137873,
+     "end_time": "2024-11-17T04:28:29.215659",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:25.077786",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#Requeried libraries\n",
+    "import pandas as pd\n",
+    "import seaborn as sns\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "from sklearn.preprocessing import StandardScaler\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "\n",
+    "#imported models\n",
+    "from sklearn.linear_model import LogisticRegression\n",
+    "from sklearn.metrics import accuracy_score\n",
+    "\n",
+    "from sklearn.tree import DecisionTreeClassifier\n",
+    "clf = DecisionTreeClassifier(random_state=0)\n",
+    "\n",
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "\n",
+    "clf = RandomForestClassifier(max_depth=2, random_state=0)\n",
+    "\n",
+    "#imported metrics \n",
+    "from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n",
+    "from sklearn.metrics import accuracy_score\n",
+    "from sklearn.metrics import precision_score\n",
+    "from sklearn.metrics import recall_score\n",
+    "from sklearn.metrics import f1_score\n",
+    "from sklearn.metrics import roc_auc_score\n",
+    "\n",
+    "from sklearn.model_selection import GridSearchCV\n",
+    "from sklearn.metrics import confusion_matrix\n",
+    "from sklearn.metrics import classification_report"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "98c0b7cd",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01453,
+     "end_time": "2024-11-17T04:28:29.245704",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.231174",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "1. CSV cargado utilizando la libreria de Pandas (pd) y se muestran las primeras filas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "2869dbb7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:29.277905Z",
+     "iopub.status.busy": "2024-11-17T04:28:29.277056Z",
+     "iopub.status.idle": "2024-11-17T04:28:29.337432Z",
+     "shell.execute_reply": "2024-11-17T04:28:29.335955Z"
+    },
+    "papermill": {
+     "duration": 0.080074,
+     "end_time": "2024-11-17T04:28:29.340457",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.260383",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>age</th>\n",
+       "      <th>gender</th>\n",
+       "      <th>total_spent</th>\n",
+       "      <th>frequency</th>\n",
+       "      <th>days_since_last_purchase</th>\n",
+       "      <th>marketing_engaged</th>\n",
+       "      <th>returned_next_month</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>25</td>\n",
+       "      <td>Male</td>\n",
+       "      <td>200.50</td>\n",
+       "      <td>5</td>\n",
+       "      <td>12</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>34</td>\n",
+       "      <td>Female</td>\n",
+       "      <td>120.75</td>\n",
+       "      <td>2</td>\n",
+       "      <td>30</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>28</td>\n",
+       "      <td>Male</td>\n",
+       "      <td>315.00</td>\n",
+       "      <td>6</td>\n",
+       "      <td>5</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>45</td>\n",
+       "      <td>Female</td>\n",
+       "      <td>150.00</td>\n",
+       "      <td>3</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>42</td>\n",
+       "      <td>Male</td>\n",
+       "      <td>175.50</td>\n",
+       "      <td>4</td>\n",
+       "      <td>25</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>96</td>\n",
+       "      <td>33</td>\n",
+       "      <td>Female</td>\n",
+       "      <td>240.00</td>\n",
+       "      <td>5</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>97</td>\n",
+       "      <td>31</td>\n",
+       "      <td>Male</td>\n",
+       "      <td>305.00</td>\n",
+       "      <td>7</td>\n",
+       "      <td>9</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>98</td>\n",
+       "      <td>40</td>\n",
+       "      <td>Female</td>\n",
+       "      <td>215.25</td>\n",
+       "      <td>4</td>\n",
+       "      <td>14</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>99</td>\n",
+       "      <td>36</td>\n",
+       "      <td>Male</td>\n",
+       "      <td>185.50</td>\n",
+       "      <td>3</td>\n",
+       "      <td>20</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>100</td>\n",
+       "      <td>29</td>\n",
+       "      <td>Female</td>\n",
+       "      <td>225.00</td>\n",
+       "      <td>6</td>\n",
+       "      <td>10</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 8 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    customer_id  age  gender  total_spent  frequency  \\\n",
+       "0             1   25    Male       200.50          5   \n",
+       "1             2   34  Female       120.75          2   \n",
+       "2             3   28    Male       315.00          6   \n",
+       "3             4   45  Female       150.00          3   \n",
+       "4             5   42    Male       175.50          4   \n",
+       "..          ...  ...     ...          ...        ...   \n",
+       "95           96   33  Female       240.00          5   \n",
+       "96           97   31    Male       305.00          7   \n",
+       "97           98   40  Female       215.25          4   \n",
+       "98           99   36    Male       185.50          3   \n",
+       "99          100   29  Female       225.00          6   \n",
+       "\n",
+       "    days_since_last_purchase  marketing_engaged  returned_next_month  \n",
+       "0                         12                  1                    1  \n",
+       "1                         30                  0                    0  \n",
+       "2                          5                  1                    1  \n",
+       "3                         15                  1                    0  \n",
+       "4                         25                  0                    0  \n",
+       "..                       ...                ...                  ...  \n",
+       "95                         7                  1                    1  \n",
+       "96                         9                  1                    1  \n",
+       "97                        14                  0                    0  \n",
+       "98                        20                  1                    0  \n",
+       "99                        10                  0                    1  \n",
+       "\n",
+       "[100 rows x 8 columns]"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data = pd.read_csv(\"/kaggle/input/customers/synthetic_customer_data.csv\")\n",
+    "\n",
+    "train_data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b52f47a0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.015091,
+     "end_time": "2024-11-17T04:28:29.371129",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.356038",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "2.1 Se muestra información general de dataset"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "51cedc3f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:29.409679Z",
+     "iopub.status.busy": "2024-11-17T04:28:29.409080Z",
+     "iopub.status.idle": "2024-11-17T04:28:29.446246Z",
+     "shell.execute_reply": "2024-11-17T04:28:29.445055Z"
+    },
+    "papermill": {
+     "duration": 0.063057,
+     "end_time": "2024-11-17T04:28:29.450125",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.387068",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 100 entries, 0 to 99\n",
+      "Data columns (total 8 columns):\n",
+      " #   Column                    Non-Null Count  Dtype  \n",
+      "---  ------                    --------------  -----  \n",
+      " 0   customer_id               100 non-null    int64  \n",
+      " 1   age                       100 non-null    int64  \n",
+      " 2   gender                    100 non-null    object \n",
+      " 3   total_spent               100 non-null    float64\n",
+      " 4   frequency                 100 non-null    int64  \n",
+      " 5   days_since_last_purchase  100 non-null    int64  \n",
+      " 6   marketing_engaged         100 non-null    int64  \n",
+      " 7   returned_next_month       100 non-null    int64  \n",
+      "dtypes: float64(1), int64(6), object(1)\n",
+      "memory usage: 6.4+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "train_data.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6e8c5551",
+   "metadata": {
+    "papermill": {
+     "duration": 0.015204,
+     "end_time": "2024-11-17T04:28:29.484401",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.469197",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "2.2 Se muestran estadisticas descriptivas como la cantidad de registros \"count\", media aritmética \"mean\", desviacion estandar \"std\", percentiles, etc."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "1344c033",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:29.518028Z",
+     "iopub.status.busy": "2024-11-17T04:28:29.517383Z",
+     "iopub.status.idle": "2024-11-17T04:28:29.554736Z",
+     "shell.execute_reply": "2024-11-17T04:28:29.553443Z"
+    },
+    "papermill": {
+     "duration": 0.057656,
+     "end_time": "2024-11-17T04:28:29.557692",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.500036",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>age</th>\n",
+       "      <th>total_spent</th>\n",
+       "      <th>frequency</th>\n",
+       "      <th>days_since_last_purchase</th>\n",
+       "      <th>marketing_engaged</th>\n",
+       "      <th>returned_next_month</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>50.500000</td>\n",
+       "      <td>34.300000</td>\n",
+       "      <td>213.250000</td>\n",
+       "      <td>4.500000</td>\n",
+       "      <td>14.700000</td>\n",
+       "      <td>0.600000</td>\n",
+       "      <td>0.500000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>29.011492</td>\n",
+       "      <td>6.163595</td>\n",
+       "      <td>59.069596</td>\n",
+       "      <td>1.507557</td>\n",
+       "      <td>7.681146</td>\n",
+       "      <td>0.492366</td>\n",
+       "      <td>0.502519</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>25.000000</td>\n",
+       "      <td>120.750000</td>\n",
+       "      <td>2.000000</td>\n",
+       "      <td>5.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>25.750000</td>\n",
+       "      <td>29.000000</td>\n",
+       "      <td>175.500000</td>\n",
+       "      <td>3.000000</td>\n",
+       "      <td>9.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>50.500000</td>\n",
+       "      <td>33.500000</td>\n",
+       "      <td>207.875000</td>\n",
+       "      <td>4.500000</td>\n",
+       "      <td>13.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.500000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>75.250000</td>\n",
+       "      <td>40.000000</td>\n",
+       "      <td>240.000000</td>\n",
+       "      <td>6.000000</td>\n",
+       "      <td>20.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>45.000000</td>\n",
+       "      <td>315.000000</td>\n",
+       "      <td>7.000000</td>\n",
+       "      <td>30.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       customer_id         age  total_spent   frequency  \\\n",
+       "count   100.000000  100.000000   100.000000  100.000000   \n",
+       "mean     50.500000   34.300000   213.250000    4.500000   \n",
+       "std      29.011492    6.163595    59.069596    1.507557   \n",
+       "min       1.000000   25.000000   120.750000    2.000000   \n",
+       "25%      25.750000   29.000000   175.500000    3.000000   \n",
+       "50%      50.500000   33.500000   207.875000    4.500000   \n",
+       "75%      75.250000   40.000000   240.000000    6.000000   \n",
+       "max     100.000000   45.000000   315.000000    7.000000   \n",
+       "\n",
+       "       days_since_last_purchase  marketing_engaged  returned_next_month  \n",
+       "count                100.000000         100.000000           100.000000  \n",
+       "mean                  14.700000           0.600000             0.500000  \n",
+       "std                    7.681146           0.492366             0.502519  \n",
+       "min                    5.000000           0.000000             0.000000  \n",
+       "25%                    9.000000           0.000000             0.000000  \n",
+       "50%                   13.000000           1.000000             0.500000  \n",
+       "75%                   20.000000           1.000000             1.000000  \n",
+       "max                   30.000000           1.000000             1.000000  "
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data.describe()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ebab23ad",
+   "metadata": {
+    "papermill": {
+     "duration": 0.019837,
+     "end_time": "2024-11-17T04:28:29.593435",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.573598",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "3.1 Se muestran dos histogramas, el primero con la distribucín de Edad y el segundo de Gasto"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "2ada539b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:29.635807Z",
+     "iopub.status.busy": "2024-11-17T04:28:29.635110Z",
+     "iopub.status.idle": "2024-11-17T04:28:30.354599Z",
+     "shell.execute_reply": "2024-11-17T04:28:30.353186Z"
+    },
+    "papermill": {
+     "duration": 0.745806,
+     "end_time": "2024-11-17T04:28:30.357933",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:29.612127",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Text(0, 0.5, 'Frecuencia')"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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4YcyxhSahBITE5WWlmZfP3z4sAYPHqzjx4+rbt266t69uzZt2qS6deuW3UQAlCtyB4DL5dYCqFevXjLGFNln1KhRGjVqVKHbDxw44LD+4YcfuiI0AB6M3AHgclWIe4AAAABciQIIAABYDgUQAACwHAogAABgORRAAADAciiAAACA5VAAAQAAy6EAAgAAlkMBBAAALIcCCAAAWA4FEAAAsBwKIAAAYDkUQAAAwHIogAAAgOVQAAEAAMuhAAIAAJZDAQQAACyHAggAAFgOBRAAALAcCiAAAGA5FEAAAMByKIAAAIDlUAABAADLoQACAACWQwEEAAAshwIIAABYDgUQAACwHAogAABgORRAAADAciiAAACA5VAAAQAAy6EAAgAAlkMBBAAALMetBdCGDRvUv39/RUREyGazafny5Q7bhw0bJpvN5rD069fvkuPOmzdPDRs2lJ+fn7p27aoff/yxjGYAwB3IHQAul1sLoKysLHXo0EHz5s0rtE+/fv2UnJxsXz744IMix/zoo480YcIETZ06Vdu3b1eHDh3Ut29fHT161NXhA3ATcgeAy+XlzhePjo5WdHR0kX18fX0VFhZW7DFnzZqlkSNHavjw4ZKkBQsW6Msvv9TChQv15JNPXla8ADwDuQPA5fL4e4DWrVunkJAQtWjRQqNHj9bx48cL7Xvu3Dlt27ZNUVFR9rYqVaooKipK8fHx5REuAA9B7gBQFLeeAbqUfv36adCgQWrUqJESExP11FNPKTo6WvHx8apatWqB/mlpacrNzVVoaKhDe2hoqH799ddCXyc7O1vZ2dn29YyMDNdNAkC5I3cAuBSPLoDuvfde+7/btWun9u3bq0mTJlq3bp169+7tsteJjY3V9OnTXTYeAPcidwC4FI+/BHahxo0bKzg4WPv27XO6PTg4WFWrVlVqaqpDe2pqapH3AkyePFnp6en25dChQy6NG4B7kTsAXKxCFUCHDx/W8ePHFR4e7nS7j4+POnfurNWrV9vb8vLytHr1akVGRhY6rq+vr4KCghwWAJUHuQPAxdxaAGVmZiohIUEJCQmSpP379yshIUFJSUnKzMzUE088oU2bNunAgQNavXq1BgwYoKZNm6pv3772MXr37q25c+fa1ydMmKC33npLS5Ys0S+//KLRo0crKyvL/mQHgIqP3AHgcrn1HqCtW7fqhhtusK9PmDBB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dlwyJpQM9wDBo91www2aP3++Q1vt2rX1zjvvqF69eoqIiLC3R0ZGFtj/o48+0muvvabExERlZmbq/PnzCgoKsm//5Zdf9OCDDzrsExkZqbVr17p4JgCK48cff1ReXp6GDBmi7Oxse/u3336r2NhY/frrr8rIyND58+d19uxZnT59WtWrV9fDDz+s0aNHa9WqVYqKitIdd9yh9u3bF/o6iYmJysnJUbdu3ext3t7euuaaa/TLL7+UKObLGWvv3r2aMmWKNm/erLS0NPuZn6SkJLVt27ZEcaBkuAQGj+bv76+mTZs6LLVr1y7WvvHx8RoyZIhuvvlmrVixQjt27NDTTz+tc+fOlXHUAC6ladOmstls2rNnj0N748aN1bRpU1WrVs3eduDAAd16661q3769Pv30U23btk3z5s2TJPvv8wMPPKDff/9df/vb37Rz50516dJF//rXv8pvQqXUv39/nThxQm+99ZY2b96szZs3SxJ5qhxQAKFCatWqlQ4dOuTwVMamTZsc+mzcuFENGjTQ008/rS5duqhZs2Y6ePBggXHyE05h4wBwvTp16uimm27S3LlzlZWVVWTfbdu2KS8vT6+88oquvfZaNW/eXEeOHCnQr169enrwwQf12Wef6bHHHtNbb70lSfLx8ZEk5ebm2vs2adJEPj4++uGHH+xtOTk52rJli1q3bl2iuRRnLGcxHD9+XHv27NEzzzyj3r17q1WrVjp58mSJXhulxyUweLTs7GylpKQ4tHl5eSkqKkrNmzdXTEyMXn75ZWVkZOjpp5926NesWTMlJSXpww8/1NVXX60vv/xSy5Ytc+jzyCOPaNiwYerSpYu6deum9957T7t371bjxo3LfG6A1b3++uvq1q2bunTpomnTpql9+/aqUqWKtmzZol9//VWdO3eW9NfZopycHP3rX/9S//799cMPP2jBggUOY40fP17R0dFq3ry5Tp48qbVr16pVq1aSpAYNGshms2nFihW6+eabVa1aNQUEBGj06NF64oknVLt2bdWvX18zZ87U6dOnNWLEiBLNw9/f/5JjOYuhVq1aqlOnjt58802Fh4crKSlJTz75pAt+sigWd9+EBBQmJibGSCqwtGjRwhhjzJ49e0z37t2Nj4+Pad68uVm5cmWBm6CfeOIJU6dOHRMQEGDuuece8+qrr5oaNWo4vM4LL7xggoODTUBAgImJiTETJ07kJmignBw5csSMHTvWNGrUyHh7e5uAgABzzTXXmJdfftlkZWXZ+82aNcuEh4ebatWqmb59+5q3337b4abisWPHmiZNmhhfX19Tt25d87e//c2kpaXZ958xY4YJCwszNpvNxMTEGGOMOXPmjBk3bpwJDg42vr6+plu3bubHH38sVtwX3gRd3LGcxRAXF2datWplfH19Tfv27c26desc8hg3QZcdmzHGuK36AgAAcAPuAQIAAJZDAQQAACyHAggAAFgOBRAAALAcCiAAAGA5FEAAAMByKIAAAIDlUAABAADLoQACAACWQwEEAAAshwIIAABYDgUQAACwnP8H/uR8Pw5jIskAAAAASUVORK5CYII=",
+      "text/plain": [
+       "<Figure size 640x480 with 2 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "plt.subplot(1, 2, 1)\n",
+    "plt.hist(train_data['age'], edgecolor='black')\n",
+    "plt.title('Distribución de Edad')\n",
+    "plt.xlabel('Edad')\n",
+    "plt.ylabel('Frecuencia')\n",
+    "plt.subplot(1, 2, 2)\n",
+    "plt.hist(train_data['total_spent'], edgecolor='black')\n",
+    "plt.title('Distribución de Gasto')\n",
+    "plt.xlabel('Gasto Total')\n",
+    "plt.ylabel('Frecuencia')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c58121db",
+   "metadata": {
+    "papermill": {
+     "duration": 0.016699,
+     "end_time": "2024-11-17T04:28:30.391333",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.374634",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "3.2 Se muestra un gráfico de barras para observar la distribución de genero"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "588e9107",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:30.426409Z",
+     "iopub.status.busy": "2024-11-17T04:28:30.425856Z",
+     "iopub.status.idle": "2024-11-17T04:28:30.669766Z",
+     "shell.execute_reply": "2024-11-17T04:28:30.668591Z"
+    },
+    "papermill": {
+     "duration": 0.264848,
+     "end_time": "2024-11-17T04:28:30.672651",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.407803",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<Axes: xlabel='gender', ylabel='count'>"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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cF9KzsrKqrd/+PDh6tSpk1599VVFR0errq5OvXr1UnV19XnPV1FRoeHDh+v555+vty8qKqp5hwd+hIKCgtStWzePtYqKCs2ZM0cjR46sd3xAQID73/7+/u5/OxyOBte+/w+W6dOna+PGjXrxxRfVrVs3BQYG6t577230+z8qKkqbN2+uty80NPTC3iC8CiEDrzdkyBBVV1fL4XAoOTnZY9+3336r/Px8vfrqq7rlllskSR999FGj54uPj9ebb76pzp07y8+PbwHgcoiPj1d+fn69wLlUW7du1bhx43TPPfdI+m+oHD16tNE5iouL5efnp86dOzfrLLAHN/vC6/n6+urAgQPav3+/fH19PfZdddVVCgsL0yuvvKJDhw7pgw8+UHp6eqPnS0tL08mTJzV69Gjt2LFDhw8f1vr16zV+/HjV1ta25FsBfrRmzZql1157TXPmzNHnn3+uAwcOaNWqVXr88ccv6bzdu3fXW2+9pd27d2vPnj168MEHG7zRX5IGDx6sxMRE3X333dqwYYOOHj2qjz/+WH/4wx+0c+fOS5oF9iBkYASXyyWXy1Vv3cfHR6tWrVJeXp569eqladOm6U9/+lOj54qOjtbWrVtVW1urO+64Q71799bUqVMVGhoqHx++JYCWkJycrHfffVcbNmxQv379NGDAAM2fP1+dOnW6pPPOmzdPV111lX7yk59o+PDhSk5OVnx8fIPHOxwO/fOf/9TAgQM1fvx49ejRQw888IC++uor9z05MIvDsizL7iEAAACagv/8BAAAxiJkAACAsQgZAABgLEIGAAAYi5ABAADGImQAAICxCBkAAGAsQgYAABiLkAFwxRo3bpzuvvtuu8cA0IIIGQAAYCxCBgAaYFmWzp07Z/cYABpByABocadOndKYMWMUFBSkqKgozZ8/X4MGDdLUqVMlSVVVVZo+fbo6dOigoKAg9e/fX5s3b3Y/f8WKFQoNDdX69evVs2dPBQcHa8iQISoqKnIfU1tbq/T0dIWGhiosLEwzZszQ//4pubq6OmVmZqpLly4KDAzU9ddfrzfeeMO9f/PmzXI4HHr//feVkJAgp9Opjz76qEW/NgAuDSEDoMWlp6dr69at+sc//qGNGzdqy5Yt+vTTT937J02apNzcXK1atUqfffaZRo0apSFDhujgwYPuY86cOaMXX3xRr7/+uj788EMVFBRo+vTp7v1z587VihUrtGzZMn300Uc6efKk1qxZ4zFHZmamXnvtNS1evFiff/65pk2bpp///OfKycnxOO53v/udnnvuOR04cEB9+vRpoa8KgGZhAUALKi8vt/z9/a3Vq1e710pLS63WrVtbU6ZMsb766ivL19fX+vrrrz2ed9ttt1kZGRmWZVnW8uXLLUnWoUOH3PuzsrKsiIgI93ZUVJT1wgsvuLdramqsjh07WiNGjLAsy7IqKyut1q1bWx9//LHH60ycONEaPXq0ZVmWtWnTJkuS9fbbbzfPmwfQ4vzsDikAV7Yvv/xSNTU1uummm9xrISEhuuaaayRJe/fuVW1trXr06OHxvKqqKoWFhbm3W7durauvvtq9HRUVpePHj0uSysrKVFRUpP79+7v3+/n56cYbb3R/vHTo0CGdOXNGt99+u8frVFdXq2/fvh5rN95446W8ZQCXESEDwFYVFRXy9fVVXl6efH19PfYFBwe7/+3v7++xz+Fw1LsH5odeR5Lee+89dejQwWOf0+n02A4KCrrg8wKwFyEDoEV17dpV/v7+2rFjh2JjYyX99wrKv//9bw0cOFB9+/ZVbW2tjh8/rltuuaVJrxESEqKoqCht375dAwcOlCSdO3dOeXl5io+PlyRde+21cjqdKigo0M9+9rPmeXMAbEfIAGhRbdq0UWpqqh577DG1bdtW7du31+zZs+Xj4yOHw6EePXpozJgxGjt2rObOnau+ffvqxIkTys7OVp8+fTRs2LALep0pU6boueeeU/fu3RUXF6d58+aptLTUY47p06dr2rRpqqur080336yysjJt3bpVLpdLqampLfQVANCSCBkALW7evHl6+OGHddddd8nlcmnGjBkqLCxUQECAJGn58uV65pln9Oijj+rrr79Wu3btNGDAAN11110X/BqPPvqoioqKlJqaKh8fH02YMEH33HOPysrK3Mc8/fTTCg8PV2Zmpr788kuFhoYqPj5ev//975v9PQO4PBzWxXzIDADN4PTp0+rQoYPmzp2riRMn2j0OAINxRQZAi9u1a5e++OIL3XTTTSorK9NTTz0lSRoxYoTNkwEwHSED4LJ48cUXlZ+fr1atWikhIUFbtmxRu3bt7B4LgOH4aAkAABiLP1EAAACMRcgAAABjETIAAMBYhAwAADAWIQMAAIxFyAAAAGMRMgAAwFiEDAAAMNb/A2raHj4HoH61AAAAAElFTkSuQmCC",
+      "text/plain": [
+       "<Figure size 640x480 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "sns.countplot(data=train_data, x='gender')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "2c05d73f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:30.709482Z",
+     "iopub.status.busy": "2024-11-17T04:28:30.708368Z",
+     "iopub.status.idle": "2024-11-17T04:28:30.728644Z",
+     "shell.execute_reply": "2024-11-17T04:28:30.727304Z"
+    },
+    "papermill": {
+     "duration": 0.042016,
+     "end_time": "2024-11-17T04:28:30.731569",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.689553",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>age</th>\n",
+       "      <th>gender</th>\n",
+       "      <th>total_spent</th>\n",
+       "      <th>frequency</th>\n",
+       "      <th>days_since_last_purchase</th>\n",
+       "      <th>marketing_engaged</th>\n",
+       "      <th>returned_next_month</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "      <td>False</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 8 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    customer_id    age  gender  total_spent  frequency  \\\n",
+       "0         False  False   False        False      False   \n",
+       "1         False  False   False        False      False   \n",
+       "2         False  False   False        False      False   \n",
+       "3         False  False   False        False      False   \n",
+       "4         False  False   False        False      False   \n",
+       "..          ...    ...     ...          ...        ...   \n",
+       "95        False  False   False        False      False   \n",
+       "96        False  False   False        False      False   \n",
+       "97        False  False   False        False      False   \n",
+       "98        False  False   False        False      False   \n",
+       "99        False  False   False        False      False   \n",
+       "\n",
+       "    days_since_last_purchase  marketing_engaged  returned_next_month  \n",
+       "0                      False              False                False  \n",
+       "1                      False              False                False  \n",
+       "2                      False              False                False  \n",
+       "3                      False              False                False  \n",
+       "4                      False              False                False  \n",
+       "..                       ...                ...                  ...  \n",
+       "95                     False              False                False  \n",
+       "96                     False              False                False  \n",
+       "97                     False              False                False  \n",
+       "98                     False              False                False  \n",
+       "99                     False              False                False  \n",
+       "\n",
+       "[100 rows x 8 columns]"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data.isnull()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2aec2366",
+   "metadata": {
+    "papermill": {
+     "duration": 0.016627,
+     "end_time": "2024-11-17T04:28:30.765466",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.748839",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "4.1 Se verifican si exixten valores no nulos utilizando el metodo .sum como la suma total de nullos así como el porcentaje de la proporción que representan estos valores nulos"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "3d369eb1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:30.802841Z",
+     "iopub.status.busy": "2024-11-17T04:28:30.801720Z",
+     "iopub.status.idle": "2024-11-17T04:28:30.814632Z",
+     "shell.execute_reply": "2024-11-17T04:28:30.813378Z"
+    },
+    "papermill": {
+     "duration": 0.034376,
+     "end_time": "2024-11-17T04:28:30.817199",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.782823",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "customer_id                 0.0\n",
+       "age                         0.0\n",
+       "gender                      0.0\n",
+       "total_spent                 0.0\n",
+       "frequency                   0.0\n",
+       "days_since_last_purchase    0.0\n",
+       "marketing_engaged           0.0\n",
+       "returned_next_month         0.0\n",
+       "dtype: float64"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data.isnull().sum()\n",
+    "train_data.isnull().mean()*100"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bd03f2a0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.017345,
+     "end_time": "2024-11-17T04:28:30.852535",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.835190",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "4.2 Se idetifican y \"mapean\" los valores de la comulna gener, para tranformarlos a valores numericos de 0 par Female y 1 para Male, se define esta variable tipo int 8, para mayor eficiencia de computo al no utilizar tanta memoria"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "c59f873b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:30.890451Z",
+     "iopub.status.busy": "2024-11-17T04:28:30.889544Z",
+     "iopub.status.idle": "2024-11-17T04:28:30.912170Z",
+     "shell.execute_reply": "2024-11-17T04:28:30.910710Z"
+    },
+    "papermill": {
+     "duration": 0.044994,
+     "end_time": "2024-11-17T04:28:30.915099",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.870105",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>age</th>\n",
+       "      <th>gender</th>\n",
+       "      <th>total_spent</th>\n",
+       "      <th>frequency</th>\n",
+       "      <th>days_since_last_purchase</th>\n",
+       "      <th>marketing_engaged</th>\n",
+       "      <th>returned_next_month</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>25</td>\n",
+       "      <td>1</td>\n",
+       "      <td>200.50</td>\n",
+       "      <td>5</td>\n",
+       "      <td>12</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>34</td>\n",
+       "      <td>0</td>\n",
+       "      <td>120.75</td>\n",
+       "      <td>2</td>\n",
+       "      <td>30</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>28</td>\n",
+       "      <td>1</td>\n",
+       "      <td>315.00</td>\n",
+       "      <td>6</td>\n",
+       "      <td>5</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>45</td>\n",
+       "      <td>0</td>\n",
+       "      <td>150.00</td>\n",
+       "      <td>3</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>42</td>\n",
+       "      <td>1</td>\n",
+       "      <td>175.50</td>\n",
+       "      <td>4</td>\n",
+       "      <td>25</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>96</td>\n",
+       "      <td>33</td>\n",
+       "      <td>0</td>\n",
+       "      <td>240.00</td>\n",
+       "      <td>5</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>97</td>\n",
+       "      <td>31</td>\n",
+       "      <td>1</td>\n",
+       "      <td>305.00</td>\n",
+       "      <td>7</td>\n",
+       "      <td>9</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>98</td>\n",
+       "      <td>40</td>\n",
+       "      <td>0</td>\n",
+       "      <td>215.25</td>\n",
+       "      <td>4</td>\n",
+       "      <td>14</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>99</td>\n",
+       "      <td>36</td>\n",
+       "      <td>1</td>\n",
+       "      <td>185.50</td>\n",
+       "      <td>3</td>\n",
+       "      <td>20</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>100</td>\n",
+       "      <td>29</td>\n",
+       "      <td>0</td>\n",
+       "      <td>225.00</td>\n",
+       "      <td>6</td>\n",
+       "      <td>10</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 8 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    customer_id  age  gender  total_spent  frequency  \\\n",
+       "0             1   25       1       200.50          5   \n",
+       "1             2   34       0       120.75          2   \n",
+       "2             3   28       1       315.00          6   \n",
+       "3             4   45       0       150.00          3   \n",
+       "4             5   42       1       175.50          4   \n",
+       "..          ...  ...     ...          ...        ...   \n",
+       "95           96   33       0       240.00          5   \n",
+       "96           97   31       1       305.00          7   \n",
+       "97           98   40       0       215.25          4   \n",
+       "98           99   36       1       185.50          3   \n",
+       "99          100   29       0       225.00          6   \n",
+       "\n",
+       "    days_since_last_purchase  marketing_engaged  returned_next_month  \n",
+       "0                         12                  1                    1  \n",
+       "1                         30                  0                    0  \n",
+       "2                          5                  1                    1  \n",
+       "3                         15                  1                    0  \n",
+       "4                         25                  0                    0  \n",
+       "..                       ...                ...                  ...  \n",
+       "95                         7                  1                    1  \n",
+       "96                         9                  1                    1  \n",
+       "97                        14                  0                    0  \n",
+       "98                        20                  1                    0  \n",
+       "99                        10                  0                    1  \n",
+       "\n",
+       "[100 rows x 8 columns]"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data['gender'] = train_data['gender'].map({'Female': 0, 'Male': 1}).astype(np.int8)\n",
+    "train_data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "752ed9eb",
+   "metadata": {
+    "papermill": {
+     "duration": 0.017696,
+     "end_time": "2024-11-17T04:28:30.950864",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.933168",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "4.3 Se hace un escalamiento de las comunas: 'age', 'total_spent', 'frequency', 'days_since_last_purchase' con el fin de asegurar la consistencia en los datos que será utilizados en el entrenamiento del modelo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9e7bfb4c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:30.988786Z",
+     "iopub.status.busy": "2024-11-17T04:28:30.988176Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.005264Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.003841Z"
+    },
+    "papermill": {
+     "duration": 0.039541,
+     "end_time": "2024-11-17T04:28:31.008170",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:30.968629",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-1 {color: black;background-color: white;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-1\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>StandardScaler()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-1\" type=\"checkbox\" checked><label for=\"sk-estimator-id-1\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">StandardScaler</label><div class=\"sk-toggleable__content\"><pre>StandardScaler()</pre></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "StandardScaler()"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "scaler = StandardScaler()\n",
+    "scaler.fit(train_data[['age', 'total_spent', 'frequency', 'days_since_last_purchase']])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "3349bb27",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.048801Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.047300Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.058114Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.056918Z"
+    },
+    "papermill": {
+     "duration": 0.03414,
+     "end_time": "2024-11-17T04:28:31.060822",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.026682",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "train_data[['age', 'total_spent', 'frequency', 'days_since_last_purchase']] = scaler.transform(train_data[['age', 'total_spent', 'frequency', 'days_since_last_purchase']])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "aea58396",
+   "metadata": {
+    "papermill": {
+     "duration": 0.017513,
+     "end_time": "2024-11-17T04:28:31.096472",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.078959",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "4.3 Se despliegan las caracteristicas generales con los valores de las columnas que previamente se escalaron"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "ca9e741a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.135838Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.135274Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.166792Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.165226Z"
+    },
+    "papermill": {
+     "duration": 0.054435,
+     "end_time": "2024-11-17T04:28:31.169821",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.115386",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>age</th>\n",
+       "      <th>total_spent</th>\n",
+       "      <th>frequency</th>\n",
+       "      <th>days_since_last_purchase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>1.000000e+02</td>\n",
+       "      <td>1.000000e+02</td>\n",
+       "      <td>1.000000e+02</td>\n",
+       "      <td>1.000000e+02</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>4.329870e-16</td>\n",
+       "      <td>-1.776357e-17</td>\n",
+       "      <td>-4.440892e-18</td>\n",
+       "      <td>5.440093e-17</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>1.005038e+00</td>\n",
+       "      <td>1.005038e+00</td>\n",
+       "      <td>1.005038e+00</td>\n",
+       "      <td>1.005038e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>-1.516461e+00</td>\n",
+       "      <td>-1.573838e+00</td>\n",
+       "      <td>-1.666667e+00</td>\n",
+       "      <td>-1.269194e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>-8.642198e-01</td>\n",
+       "      <td>-6.422962e-01</td>\n",
+       "      <td>-1.000000e+00</td>\n",
+       "      <td>-7.458152e-01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>-1.304483e-01</td>\n",
+       "      <td>-9.145277e-02</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "      <td>-2.224361e-01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>9.294439e-01</td>\n",
+       "      <td>4.551370e-01</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>6.934773e-01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>1.744746e+00</td>\n",
+       "      <td>1.731222e+00</td>\n",
+       "      <td>1.666667e+00</td>\n",
+       "      <td>2.001925e+00</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                age   total_spent     frequency  days_since_last_purchase\n",
+       "count  1.000000e+02  1.000000e+02  1.000000e+02              1.000000e+02\n",
+       "mean   4.329870e-16 -1.776357e-17 -4.440892e-18              5.440093e-17\n",
+       "std    1.005038e+00  1.005038e+00  1.005038e+00              1.005038e+00\n",
+       "min   -1.516461e+00 -1.573838e+00 -1.666667e+00             -1.269194e+00\n",
+       "25%   -8.642198e-01 -6.422962e-01 -1.000000e+00             -7.458152e-01\n",
+       "50%   -1.304483e-01 -9.145277e-02  0.000000e+00             -2.224361e-01\n",
+       "75%    9.294439e-01  4.551370e-01  1.000000e+00              6.934773e-01\n",
+       "max    1.744746e+00  1.731222e+00  1.666667e+00              2.001925e+00"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_data[['age', 'total_spent', 'frequency', 'days_since_last_purchase']].describe()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8c7678e6",
+   "metadata": {
+    "papermill": {
+     "duration": 0.018103,
+     "end_time": "2024-11-17T04:28:31.206924",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.188821",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "5. Se divide qué caracteristica será objetivo de predecir (returned_next_month) así como algún atributo que no sea importante para el entrenamiento como el customer_id"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "15bd075f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.246632Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.246039Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.254160Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.252797Z"
+    },
+    "papermill": {
+     "duration": 0.03147,
+     "end_time": "2024-11-17T04:28:31.256909",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.225439",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# variables predictoras\n",
+    "X = train_data.drop(['returned_next_month', 'customer_id'], axis=1)\n",
+    "\n",
+    "# variable objetivo\n",
+    "y = train_data['returned_next_month']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e93bf7cd",
+   "metadata": {
+    "papermill": {
+     "duration": 0.018397,
+     "end_time": "2024-11-17T04:28:31.293808",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.275411",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "5.2 Se asigna un 20 porciento de los datos a la validación (testing) del modelo) el 80% serán los datos de entrenamiento"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "51408e45",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.333469Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.332936Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.344574Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.343204Z"
+    },
+    "papermill": {
+     "duration": 0.034683,
+     "end_time": "2024-11-17T04:28:31.347370",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.312687",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Dividir los datos\n",
+    "X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "52b288bb",
+   "metadata": {
+    "papermill": {
+     "duration": 0.019094,
+     "end_time": "2024-11-17T04:28:31.384984",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.365890",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "6.1 Se selecciona el primer modelo de clasficicación como Regresión Logistica (model1) y se realiza la entramiento"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "204f8bba",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.425220Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.423887Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.452554Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.450860Z"
+    },
+    "papermill": {
+     "duration": 0.051877,
+     "end_time": "2024-11-17T04:28:31.455400",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.403523",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-2 {color: black;background-color: white;}#sk-container-id-2 pre{padding: 0;}#sk-container-id-2 div.sk-toggleable {background-color: white;}#sk-container-id-2 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-2 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-2 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-2 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-2 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-2 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-2 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-2 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-2 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-2 div.sk-item {position: relative;z-index: 1;}#sk-container-id-2 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-2 div.sk-item::before, #sk-container-id-2 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-2 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-2 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-2 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-2 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-2 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-2 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-2 div.sk-label-container {text-align: center;}#sk-container-id-2 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-2 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-2\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>LogisticRegression()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-2\" type=\"checkbox\" checked><label for=\"sk-estimator-id-2\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">LogisticRegression</label><div class=\"sk-toggleable__content\"><pre>LogisticRegression()</pre></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "LogisticRegression()"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model1 = LogisticRegression() # modelo de regresión logistica\n",
+    "model1.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0adeaec2",
+   "metadata": {
+    "papermill": {
+     "duration": 0.018324,
+     "end_time": "2024-11-17T04:28:31.492724",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.474400",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "6.2 Se selecciona el segundo modelo de clasficicación como Árbol de Decisión (model2) y se realiza la entramiento"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "df179df9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.532638Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.532051Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.548670Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.547459Z"
+    },
+    "papermill": {
+     "duration": 0.039893,
+     "end_time": "2024-11-17T04:28:31.551208",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.511315",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-3 {color: black;background-color: white;}#sk-container-id-3 pre{padding: 0;}#sk-container-id-3 div.sk-toggleable {background-color: white;}#sk-container-id-3 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-3 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-3 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-3 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-3 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-3 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-3 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-3 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-3 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-3 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-3 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-3 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-3 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-3 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-3 div.sk-item {position: relative;z-index: 1;}#sk-container-id-3 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-3 div.sk-item::before, #sk-container-id-3 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-3 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-3 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-3 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-3 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-3 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-3 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-3 div.sk-label-container {text-align: center;}#sk-container-id-3 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-3 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-3\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>DecisionTreeClassifier(random_state=0)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-3\" type=\"checkbox\" checked><label for=\"sk-estimator-id-3\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">DecisionTreeClassifier</label><div class=\"sk-toggleable__content\"><pre>DecisionTreeClassifier(random_state=0)</pre></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "DecisionTreeClassifier(random_state=0)"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model2 = DecisionTreeClassifier(random_state=0) # modelo de árbol de decisión\n",
+    "model2.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8220d959",
+   "metadata": {
+    "papermill": {
+     "duration": 0.018703,
+     "end_time": "2024-11-17T04:28:31.588989",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.570286",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "6.3 Se selecciona el tercer modelo de clasficicación como Bosque aleatorio (model3) y se realiza la entramiento"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "78c85e2e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.629795Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.629181Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.865088Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.863603Z"
+    },
+    "papermill": {
+     "duration": 0.259872,
+     "end_time": "2024-11-17T04:28:31.868300",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.608428",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-4 {color: black;background-color: white;}#sk-container-id-4 pre{padding: 0;}#sk-container-id-4 div.sk-toggleable {background-color: white;}#sk-container-id-4 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-4 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-4 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-4 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-4 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-4 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-4 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-4 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-4 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-4 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-4 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-4 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-4 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-4 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-4 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-4 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-4 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-4 div.sk-item {position: relative;z-index: 1;}#sk-container-id-4 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-4 div.sk-item::before, #sk-container-id-4 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-4 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-4 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-4 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-4 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-4 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-4 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-4 div.sk-label-container {text-align: center;}#sk-container-id-4 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-4 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-4\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>RandomForestClassifier(max_depth=2, random_state=0)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-4\" type=\"checkbox\" checked><label for=\"sk-estimator-id-4\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">RandomForestClassifier</label><div class=\"sk-toggleable__content\"><pre>RandomForestClassifier(max_depth=2, random_state=0)</pre></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "RandomForestClassifier(max_depth=2, random_state=0)"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model3 = RandomForestClassifier(max_depth=2, random_state=0) # modelo de bosque aleatorio\n",
+    "model3.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "048ad503",
+   "metadata": {
+    "papermill": {
+     "duration": 0.019284,
+     "end_time": "2024-11-17T04:28:31.907146",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.887862",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "7.1 Para evaluar los modelos primero calcularemos la varible objetivo a partir de de los datos de validación previamente separados y se realiza la inferencia con cada uno de los modelos"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "cbf90ad6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:31.949871Z",
+     "iopub.status.busy": "2024-11-17T04:28:31.949263Z",
+     "iopub.status.idle": "2024-11-17T04:28:31.972120Z",
+     "shell.execute_reply": "2024-11-17T04:28:31.970746Z"
+    },
+    "papermill": {
+     "duration": 0.049017,
+     "end_time": "2024-11-17T04:28:31.975596",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.926579",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[0 0 1 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0 1 0]\n",
+      "[0 0 1 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0 1 0]\n",
+      "[0 0 1 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0 1 0]\n"
+     ]
+    }
+   ],
+   "source": [
+    "y_pred1 = model1.predict(X_val) # modelo de Regresión logistica\n",
+    "print(y_pred1)\n",
+    "y_pred2 = model2.predict(X_val) # modelo de árbol de decisión\n",
+    "print(y_pred2)\n",
+    "y_pred3 = model3.predict(X_val) # modelo de bosque aleatorio\n",
+    "print(y_pred3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3e02a1a8",
+   "metadata": {
+    "papermill": {
+     "duration": 0.020495,
+     "end_time": "2024-11-17T04:28:32.015834",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:31.995339",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "desde este punto se puede observar que los tres modelos predicen los mismos valores por lo que se espera que tengan metricas iguales"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "15988127",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:32.057991Z",
+     "iopub.status.busy": "2024-11-17T04:28:32.057428Z",
+     "iopub.status.idle": "2024-11-17T04:28:32.088725Z",
+     "shell.execute_reply": "2024-11-17T04:28:32.086947Z"
+    },
+    "papermill": {
+     "duration": 0.056379,
+     "end_time": "2024-11-17T04:28:32.091803",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.035424",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Las metricas de rendimiento para el modelo de Regresión logistica son las siguientes:\n",
+      "Accuracy score: 1.0\n",
+      "Pression scrore: 1.0\n",
+      "Recall scrore: 1.0\n",
+      "F1 scrore: 1.0\n",
+      "Roc-Auc scrore: 1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Para el modelo de Regresión logistica\n",
+    "# Evalua el rendimiento métricas de rendimiento: exactitud, precisión, recall, F1 y AUC-ROC.\n",
+    "\n",
+    "print(\"Las metricas de rendimiento para el modelo de Regresión logistica son las siguientes:\")\n",
+    "accuracy1 = accuracy_score(y_val, y_pred1)\n",
+    "print(f\"Accuracy score: {accuracy1:.1f}\")\n",
+    "pression1 = precision_score(y_val, y_pred1)\n",
+    "print(f\"Pression scrore: {pression1:.1f}\")\n",
+    "recall1 = recall_score(y_val, y_pred1, average='binary', zero_division=1)\n",
+    "print(f\"Recall scrore: {recall1:.1f}\")\n",
+    "f1_1 = f1_score(y_val, y_pred1, zero_division=1.0)\n",
+    "print(f\"F1 scrore: {f1_1:.1f}\")\n",
+    "roc1 = roc_auc_score(y, model1.predict_proba(X)[:, 1])\n",
+    "print(f\"Roc-Auc scrore: {roc1:.1f}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "18a2d4d7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:32.134447Z",
+     "iopub.status.busy": "2024-11-17T04:28:32.133928Z",
+     "iopub.status.idle": "2024-11-17T04:28:32.160225Z",
+     "shell.execute_reply": "2024-11-17T04:28:32.158641Z"
+    },
+    "papermill": {
+     "duration": 0.051476,
+     "end_time": "2024-11-17T04:28:32.163596",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.112120",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Las metricas de rendimiento para el modelo de Árbol de decisión son las siguientes:\n",
+      "Accuracy score: 1.0\n",
+      "Pression scrore: 1.0\n",
+      "Recall scrore: 1.0\n",
+      "F1 scrore: 1.0\n",
+      "Roc-Auc scrore: 1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Para el modelo de árbol de decisión\n",
+    "# Evalua el rendimiento métricas de rendimiento: exactitud, precisión, recall, F1 y AUC-ROC.\n",
+    "\n",
+    "print(\"Las metricas de rendimiento para el modelo de Árbol de decisión son las siguientes:\")\n",
+    "accuracy2 = accuracy_score(y_val, y_pred2)\n",
+    "print(f\"Accuracy score: {accuracy2:.1f}\")\n",
+    "pression2 = precision_score(y_val, y_pred2)\n",
+    "print(f\"Pression scrore: {pression2:.1f}\")\n",
+    "recall2 = recall_score(y_val, y_pred2, average='binary', zero_division=1)\n",
+    "print(f\"Recall scrore: {recall2:.1f}\")\n",
+    "f1_2 = f1_score(y_val, y_pred2, zero_division=1.0)\n",
+    "print(f\"F1 scrore: {f1_2:.1f}\")\n",
+    "roc2 = roc_auc_score(y, model2.predict_proba(X)[:, 1])\n",
+    "print(f\"Roc-Auc scrore: {roc2:.1f}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "6d227e70",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:32.206266Z",
+     "iopub.status.busy": "2024-11-17T04:28:32.205705Z",
+     "iopub.status.idle": "2024-11-17T04:28:32.238793Z",
+     "shell.execute_reply": "2024-11-17T04:28:32.237416Z"
+    },
+    "papermill": {
+     "duration": 0.058662,
+     "end_time": "2024-11-17T04:28:32.242029",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.183367",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Las metricas de rendimiento para el modelo de Bosque aleatorio son las siguientes:\n",
+      "Accuracy score: 1.0\n",
+      "Pression scrore: 1.0\n",
+      "Recall scrore: 1.0\n",
+      "F1 scrore: 1.0\n",
+      "Roc-Auc scrore: 1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Para el modelo de bosque aleatorio\n",
+    "# Evalua el rendimiento métricas de rendimiento: exactitud, precisión, recall, F1 y AUC-ROC.\n",
+    "\n",
+    "print(\"Las metricas de rendimiento para el modelo de Bosque aleatorio son las siguientes:\")\n",
+    "accuracy3 = accuracy_score(y_val, y_pred3)\n",
+    "print(f\"Accuracy score: {accuracy3:.1f}\")\n",
+    "pression3 = precision_score(y_val, y_pred3)\n",
+    "print(f\"Pression scrore: {pression3:.1f}\")\n",
+    "recall3 = recall_score(y_val, y_pred3, average='binary', zero_division=1)\n",
+    "print(f\"Recall scrore: {recall3:.1f}\")\n",
+    "f1_3 = f1_score(y_val, y_pred3, zero_division=1.0)\n",
+    "print(f\"F1 scrore: {f1_3:.1f}\")\n",
+    "roc3 = roc_auc_score(y, model3.predict_proba(X)[:, 1])\n",
+    "print(f\"Roc-Auc scrore: {roc3:.1f}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "df57ba4d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.020078,
+     "end_time": "2024-11-17T04:28:32.282121",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.262043",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Las metricas de evaluación entre los tres modelos anteriores son iguales por lo que es indistito cual elegir como mejor modelo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9c89dd56",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01968,
+     "end_time": "2024-11-17T04:28:32.322864",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.303184",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "8.1 Se realiza la optimizaicón de los hiperparámetros en el modelo de Boque aleatorio"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "853ab37e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:28:32.365012Z",
+     "iopub.status.busy": "2024-11-17T04:28:32.364439Z",
+     "iopub.status.idle": "2024-11-17T04:29:10.953830Z",
+     "shell.execute_reply": "2024-11-17T04:29:10.952686Z"
+    },
+    "papermill": {
+     "duration": 38.634275,
+     "end_time": "2024-11-17T04:29:10.977051",
+     "exception": false,
+     "start_time": "2024-11-17T04:28:32.342776",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-5 {color: black;background-color: white;}#sk-container-id-5 pre{padding: 0;}#sk-container-id-5 div.sk-toggleable {background-color: white;}#sk-container-id-5 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-5 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-5 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-5 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-5 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-5 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-5 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-5 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-5 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-5 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-5 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-5 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-5 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-5 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-5 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-5 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-5 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-5 div.sk-item {position: relative;z-index: 1;}#sk-container-id-5 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-5 div.sk-item::before, #sk-container-id-5 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-5 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-5 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-5 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-5 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-5 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-5 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-5 div.sk-label-container {text-align: center;}#sk-container-id-5 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-5 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-5\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>GridSearchCV(cv=5, estimator=RandomForestClassifier(random_state=0),\n",
+       "             param_grid={&#x27;max_depth&#x27;: [2, 10, 20],\n",
+       "                         &#x27;min_samples_split&#x27;: [5, 15, 30],\n",
+       "                         &#x27;n_estimators&#x27;: [50, 120, 200]},\n",
+       "             scoring=&#x27;accuracy&#x27;)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item sk-dashed-wrapped\"><div class=\"sk-label-container\"><div class=\"sk-label sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-5\" type=\"checkbox\" ><label for=\"sk-estimator-id-5\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">GridSearchCV</label><div class=\"sk-toggleable__content\"><pre>GridSearchCV(cv=5, estimator=RandomForestClassifier(random_state=0),\n",
+       "             param_grid={&#x27;max_depth&#x27;: [2, 10, 20],\n",
+       "                         &#x27;min_samples_split&#x27;: [5, 15, 30],\n",
+       "                         &#x27;n_estimators&#x27;: [50, 120, 200]},\n",
+       "             scoring=&#x27;accuracy&#x27;)</pre></div></div></div><div class=\"sk-parallel\"><div class=\"sk-parallel-item\"><div class=\"sk-item\"><div class=\"sk-label-container\"><div class=\"sk-label sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-6\" type=\"checkbox\" ><label for=\"sk-estimator-id-6\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">estimator: RandomForestClassifier</label><div class=\"sk-toggleable__content\"><pre>RandomForestClassifier(random_state=0)</pre></div></div></div><div class=\"sk-serial\"><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-7\" type=\"checkbox\" ><label for=\"sk-estimator-id-7\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">RandomForestClassifier</label><div class=\"sk-toggleable__content\"><pre>RandomForestClassifier(random_state=0)</pre></div></div></div></div></div></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "GridSearchCV(cv=5, estimator=RandomForestClassifier(random_state=0),\n",
+       "             param_grid={'max_depth': [2, 10, 20],\n",
+       "                         'min_samples_split': [5, 15, 30],\n",
+       "                         'n_estimators': [50, 120, 200]},\n",
+       "             scoring='accuracy')"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Definir los hiperparámetros y sus posibles valores\n",
+    "param_grid = {\n",
+    "    'max_depth': [2, 10, 20],\n",
+    "    'min_samples_split': [5, 15, 30],\n",
+    "    'n_estimators': [50, 120, 200, ]\n",
+    "}\n",
+    "# Inicializar la búsqueda en cuadrícula\n",
+    "grid_search = GridSearchCV(RandomForestClassifier(random_state=0), param_grid, cv=5, scoring='accuracy')\n",
+    "# Ajustar el modelo con los datos de entrenamiento\n",
+    "grid_search.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1aaae4c0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.020019,
+     "end_time": "2024-11-17T04:29:11.016829",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:10.996810",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "8.1 Se observan los mejores hiperparámetros encontrados con grid_search"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "f2faf2dd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:29:11.061845Z",
+     "iopub.status.busy": "2024-11-17T04:29:11.061274Z",
+     "iopub.status.idle": "2024-11-17T04:29:11.068388Z",
+     "shell.execute_reply": "2024-11-17T04:29:11.066996Z"
+    },
+    "papermill": {
+     "duration": 0.03443,
+     "end_time": "2024-11-17T04:29:11.072666",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.038236",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Mejores hiperparámetros: {'max_depth': 2, 'min_samples_split': 5, 'n_estimators': 50}\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Ver los mejores hiperparámetros\n",
+    "print(\"Mejores hiperparámetros:\", grid_search.best_params_)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b1c10226",
+   "metadata": {
+    "papermill": {
+     "duration": 0.020216,
+     "end_time": "2024-11-17T04:29:11.113094",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.092878",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "8.2 Dados estos mejores hiperparámetos seleccionados se vuelve inferir la varibale objetivo y se calcula sus metricas de rendimiento"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "592b68b8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:29:11.158625Z",
+     "iopub.status.busy": "2024-11-17T04:29:11.158078Z",
+     "iopub.status.idle": "2024-11-17T04:29:11.171997Z",
+     "shell.execute_reply": "2024-11-17T04:29:11.170801Z"
+    },
+    "papermill": {
+     "duration": 0.039308,
+     "end_time": "2024-11-17T04:29:11.175096",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.135788",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "model_best = grid_search.best_estimator_\n",
+    "y_pred_best = model_best.predict(X_val)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5060c21f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.019842,
+     "end_time": "2024-11-17T04:29:11.215215",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.195373",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "9.1 Se evalua el rendimiento del modelo optimizado con los mejores hyperparámetros enocntrados"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "6f6021c1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:29:11.258027Z",
+     "iopub.status.busy": "2024-11-17T04:29:11.257494Z",
+     "iopub.status.idle": "2024-11-17T04:29:11.288496Z",
+     "shell.execute_reply": "2024-11-17T04:29:11.287025Z"
+    },
+    "papermill": {
+     "duration": 0.056271,
+     "end_time": "2024-11-17T04:29:11.291446",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.235175",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Las metricas de rendimiento para el modelo de Bosque Aleatorio con los mejores hyperparámetros encontrados son las siguientes:\n",
+      "Accuracy score: 1.0\n",
+      "Pression scrore: 1.0\n",
+      "Recall scrore: 1.0\n",
+      "F1 scrore: 1.0\n",
+      "Roc-Auc scrore: 1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Para el modelo de Bosque aleatorio con los mejores hyperparámetros seleccionados\n",
+    "# Evalua el rendimiento métricas de rendimiento: exactitud, precisión, recall, F1 y AUC-ROC.\n",
+    "\n",
+    "print(\"Las metricas de rendimiento para el modelo de Bosque Aleatorio con los mejores hyperparámetros encontrados son las siguientes:\")\n",
+    "accuracy_best = accuracy_score(y_val, y_pred_best)\n",
+    "print(f\"Accuracy score: {accuracy_best:.1f}\")\n",
+    "pression_best = precision_score(y_val, y_pred_best)\n",
+    "print(f\"Pression scrore: {pression_best:.1f}\")\n",
+    "recall_best= recall_score(y_val, y_pred_best, average='binary', zero_division=1)\n",
+    "print(f\"Recall scrore: {recall_best:.1f}\")\n",
+    "f1_best = f1_score(y_val, y_pred_best, zero_division=1.0)\n",
+    "print(f\"F1 scrore: {f1_best:.1f}\")\n",
+    "roc_best = roc_auc_score(y, model_best.predict_proba(X)[:, 1])\n",
+    "print(f\"Roc-Auc scrore: {roc_best:.1f}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e5e6acda",
+   "metadata": {
+    "papermill": {
+     "duration": 0.02492,
+     "end_time": "2024-11-17T04:29:11.336837",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.311917",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "9.2 Se genera la matriz de confusión"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "b5cd7b94",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:29:11.390236Z",
+     "iopub.status.busy": "2024-11-17T04:29:11.389713Z",
+     "iopub.status.idle": "2024-11-17T04:29:11.401860Z",
+     "shell.execute_reply": "2024-11-17T04:29:11.400356Z"
+    },
+    "papermill": {
+     "duration": 0.03918,
+     "end_time": "2024-11-17T04:29:11.405022",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.365842",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 9,  0],\n",
+       "       [ 0, 11]])"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cm = confusion_matrix(y_val, y_pred1)\n",
+    "cm"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b987e0ce",
+   "metadata": {
+    "papermill": {
+     "duration": 0.021094,
+     "end_time": "2024-11-17T04:29:11.448383",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.427289",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "9.2 Se identifica de la matriz de confusión que\n",
+    "True Postitive son igual a 9,\n",
+    "False Negative son 0,\n",
+    "False Positive son 0,\n",
+    "True Negative son 11,"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "80703756",
+   "metadata": {
+    "papermill": {
+     "duration": 0.021638,
+     "end_time": "2024-11-17T04:29:11.490929",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.469291",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "9.2 De forma extra se genera y muestra el reporte de metricos con el modelo de Bosque Aleatorio y con los mejores hyperparametros"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "28e68059",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-17T04:29:11.535373Z",
+     "iopub.status.busy": "2024-11-17T04:29:11.534835Z",
+     "iopub.status.idle": "2024-11-17T04:29:11.553901Z",
+     "shell.execute_reply": "2024-11-17T04:29:11.552117Z"
+    },
+    "papermill": {
+     "duration": 0.044937,
+     "end_time": "2024-11-17T04:29:11.556978",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.512041",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              precision    recall  f1-score   support\n",
+      "\n",
+      "           0       1.00      1.00      1.00         9\n",
+      "           1       1.00      1.00      1.00        11\n",
+      "\n",
+      "    accuracy                           1.00        20\n",
+      "   macro avg       1.00      1.00      1.00        20\n",
+      "weighted avg       1.00      1.00      1.00        20\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(classification_report(y_val, y_pred_best))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3b515c66",
+   "metadata": {
+    "papermill": {
+     "duration": 0.030667,
+     "end_time": "2024-11-17T04:29:11.609486",
+     "exception": false,
+     "start_time": "2024-11-17T04:29:11.578819",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Conclusiones:\n",
+    "Todos los modelos utilizados en el presente ejercicio resultaron tener una predicción muy exacta del 100% por lo que cualquiera de ellos resulta util para realizar predicciones, de igual forma este ejercicio presenta una gran oportunidad de practica y reforzamiento de conocimiento adquiridos en las clases del presente curso, por ejemplo, la identificación de requistros nullos, el escalamiento, defición de variables de entrenamiento e inferencia, visualización de datos, identificación de caracteristicas cuantitativas y cualitativas, uso de modelos de predicción y calculo de sus metricas, así como herramientas de optimización de hiperparametros.\n",
+    "Agradezco el tiempo y atención del instructor.\n",
+    "\n",
+    "Escrito por:\n",
+    "Hector Valdes Hurtado"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 6053092,
+     "sourceId": 9862380,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30786,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 51.185079,
+   "end_time": "2024-11-17T04:29:12.662110",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-11-17T04:28:21.477031",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
